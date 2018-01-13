@@ -5,7 +5,14 @@ import {
   isType,
   identity,
   isMatcherObject,
+  is,
 } from './utils'
+
+test('is', () => {
+  expect(is(null)).toBe(false)
+  expect(is(undefined)).toBe(false)
+  expect(is('hello')).toBe(true)
+})
 
 test('isSome', () => {
   const some = {

@@ -4,3 +4,4 @@ export const isMatcherObject = x => isSome(x) || isEvery(x)
 export const isRegex = x => x instanceof RegExp
 export const isType = x => ['string', 'boolean', 'number'].includes(x)
 export const identity = x => x
+export const is = n => n !== undefined && n !== null
