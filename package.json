@@ -19,13 +19,24 @@
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-preset-env": "^1.6.1",
-    "jest": "^22.0.6"
+    "jest": "^22.0.6",
+    "jest-matcher-utils": "^22.0.6",
+    "stripmargin": "^1.0.7"
   },
   "babel": {
-    "presets": [["env", { "modules": false }]],
+    "presets": [
+      [
+        "env",
+        {
+          "modules": false
+        }
+      ]
+    ],
     "env": {
       "test": {
-        "presets": ["env"]
+        "presets": [
+          "env"
+        ]
       }
     }
   }
