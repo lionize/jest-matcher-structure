@@ -46,13 +46,20 @@ describe('toMatchStructure', () => {
   })
 
   describe('Error messages', () => {
+    test('null mismatch', () => {
+      const obj = { field: 'hello' }
+      const structure = { field: null }
+      const message = toMatchStructure(structure, obj).message()
+      const actual = formatError(null, 'hello')('field')
+
+      expect(message).toContain(actual)
+    })
+
     test('literal mismatch', () => {
       const obj = { field: 123 }
       const structure = { field: 456 }
-      const message = toMatchStructure(structure, obj)
-        .message()
-        .trim()
-      const actual = formatError('field', 456, 123)
+      const message = toMatchStructure(structure, obj).message()
+      const actual = formatError(456, 123)('field')
 
       expect(message).toContain(actual)
     })
@@ -60,10 +67,8 @@ describe('toMatchStructure', () => {
     test('string mismatch', () => {
       const obj = { field: 123 }
       const structure = { field: 'string' }
-      const message = toMatchStructure(structure, obj)
-        .message()
-        .trim()
-      const actual = formatError('field', 'string', 'number', 'be of type')
+      const message = toMatchStructure(structure, obj).message()
+      const actual = formatError('string', 'number', 'be of type')('field')
 
       expect(message).toContain(actual)
     })
@@ -71,10 +76,8 @@ describe('toMatchStructure', () => {
     test('boolean mismatch', () => {
       const obj = { field: 123 }
       const structure = { field: 'boolean' }
-      const message = toMatchStructure(structure, obj)
-        .message()
-        .trim()
-      const actual = formatError('field', 'boolean', 'number', 'be of type')
+      const message = toMatchStructure(structure, obj).message()
+      const actual = formatError('boolean', 'number', 'be of type')('field')
 
       expect(message).toContain(actual)
     })
@@ -82,10 +85,8 @@ describe('toMatchStructure', () => {
     test('number mismatch', () => {
       const obj = { field: 'hello' }
       const structure = { field: 'number' }
-      const message = toMatchStructure(structure, obj)
-        .message()
-        .trim()
-      const actual = formatError('field', 'number', 'string', 'be of type')
+      const message = toMatchStructure(structure, obj).message()
+      const actual = formatError('number', 'string', 'be of type')('field')
 
       expect(message).toContain(actual)
     })
@@ -93,10 +94,8 @@ describe('toMatchStructure', () => {
     test('regex mismatch', () => {
       const obj = { field: 'hello' }
       const structure = { field: /\d+/ }
-      const message = toMatchStructure(structure, obj)
-        .message()
-        .trim()
-      const actual = formatError('field', /\d+/, 'hello', 'match regex')
+      const message = toMatchStructure(structure, obj).message()
+      const actual = formatError(/\d+/, 'hello', 'match regex')('field')
 
       expect(message).toContain(actual)
     })
@@ -104,15 +103,12 @@ describe('toMatchStructure', () => {
     test('function mismatch', () => {
       const obj = { field: 'hello' }
       const structure = { field: x => x.length > 5 }
-      const message = toMatchStructure(structure, obj)
-        .message()
-        .trim()
+      const message = toMatchStructure(structure, obj).message()
       const actual = formatError(
-        'field',
         structure.field,
         'hello',
         'pass function test'.trim(),
-      )
+      )('field')
 
       expect(message).toContain(actual)
     })
@@ -121,15 +117,12 @@ describe('toMatchStructure', () => {
       const arr = ['A', 'B']
       const obj = { field: 'hello' }
       const structure = { field: some(arr) }
-      const message = toMatchStructure(structure, obj)
-        .message()
-        .trim()
+      const message = toMatchStructure(structure, obj).message()
       const actual = formatError(
-        'field',
         arr,
         'hello',
         'match at least one of the following',
-      )
+      )('field')
 
       expect(message).toContain(actual)
     })
@@ -138,15 +131,44 @@ describe('toMatchStructure', () => {
       const arr = ['hi', x => x.length > 10]
       const obj = { field: 'hello' }
       const structure = { field: every(arr) }
-      const message = toMatchStructure(structure, obj)
-        .message()
-        .trim()
-      const actual = formatError(
+      const message = toMatchStructure(structure, obj).message()
+      const actual = formatError(arr, 'hello', 'match all of the following')(
         'field',
-        arr,
-        'hello',
-        'match all of the following',
       )
+
+      expect(message).toContain(actual)
+    })
+
+    test('differing number of keys', () => {
+      const obj = { field1: 'hello', field2: 'hi', field3: 'what?' }
+      const structure = { field1: 'string', field2: 'string' }
+      let message = toMatchStructure(structure, obj).message()
+      let actual = 'Received object has more keys than structure'
+
+      expect(message).toContain(actual)
+
+      message = toMatchStructure(obj, structure).message()
+      actual = 'Structure has more keys than received object'
+
+      expect(message).toContain(actual)
+    })
+
+    test('object comparison not currently supported', () => {
+      const obj = { field1: { field2: 'hi ' } }
+      const structure = { field1: { field2: 'string' } }
+      const message = toMatchStructure(structure, obj).message()
+      const actual =
+        'Object comparison not currently supported. Check key field1.'
+
+      expect(message).toContain(actual)
+    })
+
+    test('array comparison not currently supported', () => {
+      const obj = { field1: ['hi'] }
+      const structure = { field1: ['hi'] }
+      const message = toMatchStructure(structure, obj).message()
+      const actual =
+        'Array comparison not currently supported. Check key field1.'
 
       expect(message).toContain(actual)
     })
@@ -163,7 +185,7 @@ describe('formatError', () => {
     |Received:
     |  received`.stripMargin()
 
-    expect(formatError(key, expected, received)).toEqual(message)
+    expect(formatError(expected, received)(key)).toEqual(message)
   })
 })
 

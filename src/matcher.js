@@ -1,5 +1,6 @@
 import { printExpected, printReceived, matcherHint } from 'jest-matcher-utils'
 import {
+  is,
   isSome,
   isEvery,
   isRegex,
@@ -12,32 +13,150 @@ export const some = array => ({ __matcher: 'some', array })
 export const every = array => ({ __matcher: 'every', array })
 
 export const formatError = (
-  key,
   expected,
   received,
   action = 'be',
-) => `Expected value of key "${key}" to ${action}:
+) => key => `Expected value of key "${key}" to ${action}:
   ${printExpected(expected)}
 Received:
   ${printReceived(received)}`
 
-export function toMatchStructure(structure, received) {
-  const receivedKeys = Object.keys(received).sort()
-  const structureKeys = Object.keys(structure).sort()
-
+const testKeys = (structureKeys, receivedKeys) => {
   if (receivedKeys.length !== structureKeys.length) {
-    const msg =
-      receivedKeys.length > structureKeys.length
-        ? 'Received object has more keys than structure'
-        : 'Structure has more keys than received object'
+    return receivedKeys.length > structureKeys.length
+      ? 'Received object has more keys than structure'
+      : 'Structure has more keys than received object'
+  }
+}
+
+const testNull = (structureValue, receivedValue) =>
+  !is(structureValue) &&
+  is(receivedValue) &&
+  formatError(structureValue, receivedValue)
+
+const testFunction = (structureValue, receivedValue) =>
+  typeof structureValue === 'function' &&
+  !structureValue(receivedValue) &&
+  formatError(structureValue, receivedValue, 'pass function test')
+
+const testRegex = (structureValue, receivedValue) =>
+  isRegex(structureValue) &&
+  !structureValue.test(receivedValue) &&
+  formatError(structureValue, receivedValue, 'match regex')
+
+const testType = (structureValue, receivedValue) =>
+  isType(structureValue) &&
+  typeof receivedValue !== structureValue &&
+  formatError(structureValue, typeof receivedValue, 'be of type')
+
+const testArray = (structureValue, receivedValue, key) =>
+  Array.isArray(structureValue) &&
+  `Array comparison not currently supported. Check key ${key}.`
+
+const testLiteral = (structureValue, receivedValue) =>
+  structureValue !== receivedValue && formatError(structureValue, receivedValue)
+
+export function toMatchStructure(structure, received) {
+  const processValues = (acc, { key, value = structure[key] }) => {
+    const receivedValue = received[key]
+    let error
+
+    if (value === null) {
+      if ((error = testNull(value, receivedValue))) {
+        acc.push(error(key))
+      }
+      return acc
+    }
+
+    if (typeof value === 'function') {
+      if ((error = testFunction(value, receivedValue))) {
+        acc.push(error(key))
+      }
+      return acc
+    }
+
+    if (isRegex(value)) {
+      if ((error = testRegex(value, receivedValue))) {
+        acc.push(error(key))
+      }
+      return acc
+    }
+
+    if (isType(value)) {
+      if ((error = testType(value, receivedValue))) {
+        acc.push(error(key))
+      }
+      return acc
+    }
+
+    if (Array.isArray(value)) {
+      if ((error = testArray(value, receivedValue, key))) {
+        acc.push(typeof error === 'function' ? error(key) : error)
+      }
+      return acc
+    }
+
+    const testObject = (structureValue, receivedValue, key) => {
+      if (typeof structureValue === 'object') {
+        if (isMatcherObject(structureValue)) {
+          const matchErrors = structureValue.array
+            .map(x => !processValues([], { key, value: x }).length)
+            .reduce((acc, cur) => acc.concat(cur), [])
+
+          let msg
+
+          if (isEvery(structureValue)) {
+            if (!matchErrors.every(identity)) {
+              msg = 'match all of the following'
+            }
+          }
+
+          if (isSome(structureValue)) {
+            if (!matchErrors.some(identity)) {
+              msg = 'match at least one of the following'
+            }
+          }
+
+          if (msg) {
+            return formatError(structureValue.array, receivedValue, msg)
+          }
+        } else {
+          return `Object comparison not currently supported. Check key ${key}.`
+        }
+      }
+    }
+
+    if (typeof value === 'object') {
+      if ((error = testObject(value, receivedValue, key))) {
+        acc.push(typeof error === 'function' ? error(key) : error)
+      }
+      return acc
+    }
+
+    if (receivedValue !== value) {
+      if ((error = testLiteral(value, receivedValue))) {
+        acc.push(error(key))
+      }
+      return acc
+    }
+
+    return acc
+  }
+
+  let msg
+
+  const structureKeys = Object.keys(structure).sort()
+  const receivedKeys = Object.keys(received).sort()
+
+  if ((msg = testKeys(structureKeys, receivedKeys))) {
     return {
-      message: `${this.utils.matcherHint('.toMatchStructure')}
+      message: () => `${matcherHint('.toMatchStructure')}
 
       ${msg}.
 
       Expected:
         ${structureKeys}
-       Received:
+      Received:
         ${receivedKeys}`,
       pass: false,
     }
@@ -60,88 +179,6 @@ export function toMatchStructure(structure, received) {
       message: `Structure does not match:\n${errors.join('\n')}`,
       pass: false,
     }
-  }
-
-  const processValues = (acc, { key, value = structure[key] }) => {
-    if (value === null) {
-      if (received[key] !== null) {
-        acc.push(formatError(key, value, received[key]))
-      }
-      return acc
-    }
-
-    if (typeof value === 'function') {
-      if (!value(received[key])) {
-        acc.push(formatError(key, value, received[key], 'pass function test'))
-      }
-      return acc
-    }
-
-    if (isRegex(value)) {
-      if (!value.test(received[key])) {
-        acc.push(formatError(key, value, received[key], 'match regex'))
-      }
-      return acc
-    }
-
-    if (isType(value)) {
-      // eslint-disable-next-line valid-typeof
-      if (typeof received[key] !== value) {
-        acc.push(formatError(key, value, typeof received[key], 'be of type'))
-      }
-      return acc
-    }
-
-    if (typeof value === 'object') {
-      if (isMatcherObject(value)) {
-        const matchErrors = value.array
-          .map(x => !processValues([], { key, value: x }).length)
-          .reduce((acc, cur) => acc.concat(cur), [])
-
-        if (isEvery(value)) {
-          if (!matchErrors.every(identity)) {
-            acc.push(
-              formatError(
-                key,
-                value.array,
-                received[key],
-                'match all of the following',
-              ),
-            )
-          }
-        }
-
-        if (isSome(value)) {
-          if (!matchErrors.some(identity)) {
-            acc.push(
-              formatError(
-                key,
-                value.array,
-                received[key],
-                'match at least one of the following',
-              ),
-            )
-          }
-        }
-      } else {
-        acc.push(
-          `Object comparison not currently supported. Check key ${value}.`,
-        )
-      }
-      return acc
-    }
-
-    if (Array.isArray(value)) {
-      acc.push(`Array comparison not currently supported. Check key ${value}.`)
-      return acc
-    }
-
-    if (received[key] !== value) {
-      acc.push(formatError(key, value, received[key]))
-      return acc
-    }
-
-    return acc
   }
 
   errors = Object.keys(structure).reduce((acc, key) => {
