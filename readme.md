@@ -1,13 +1,25 @@
-<h1 align="center">
-  <br>
-  <img width="400" src="./logo.png" alt="jest-matcher-structure">
-  <br>
-  <br>
-</h1>
+<p align="center">
+  <img width="200" src="./logo.png" alt="jest-matcher-structure">
+</p>
 
-# jest-matcher-structure
+<h2>
+  jest-matcher-structure
+  <a href="https://github.com/lionize/jest-matcher-structure/releases/tag/v0.0.1">
+    <img src="https://img.shields.io/badge/version-0.0.1-green.svg?style=flat-square" alt="v0.0.1">
+  </a>
+  <a href="./LICENSE">
+    <img src="https://img.shields.io/github/license/mashape/apistatus.svg?style=flat-square">
+  </a>
+</h2>
 
-> A custom `jest` matcher for validating object structures
+A custom `jest` matcher for validating object structures
+
+<a href="#install">Install</a> •
+<a href="#usage">Usage</a> •
+<a href="#list-of-comparisons">List of Comparisons</a> •
+<a href="#todo">TODO</a> •
+<a href="#created-by">Created By</a> •
+<a href="#license">License</a>
 
 ## Install
 
