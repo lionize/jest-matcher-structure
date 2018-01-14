@@ -2,9 +2,16 @@
   "name": "jest-matcher-structure",
   "version": "0.0.0",
   "description": "A custom jest matcher for validating object structures",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "files": [
+    "lib"
+  ],
   "scripts": {
-    "test": "jest"
+    "build": "NODE_ENV=production rollup -c",
+    "prebuild": "rimraf lib/*",
+    "dev": "NODE_ENV=development rollup -c -w",
+    "test": "jest",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "jest",
@@ -15,12 +22,29 @@
     "structure"
   ],
   "author": "Mark Chandler",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lionize/jest-matcher-structure"
+  },
+  "bugs": {
+    "url": "https://github.com/lionize/jest-matcher-structure/issues"
+  },
+  "homepage": "https://github.com/lionize/jest-matcher-structure#readme",
   "license": "MIT",
+  "dependencies": {
+    "jest-matcher-utils": "^22.0.6"
+  },
   "devDependencies": {
     "babel-core": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "jest": "^22.0.6",
-    "jest-matcher-utils": "^22.0.6",
+    "rimraf": "^2.6.2",
+    "rollup": "^0.54.0",
+    "rollup-plugin-babel": "^3.0.3",
+    "rollup-plugin-commonjs": "^8.2.6",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-resolve": "^3.0.2",
+    "rollup-plugin-uglify": "^2.0.1",
     "stripmargin": "^1.0.7"
   },
   "babel": {
