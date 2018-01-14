@@ -50,7 +50,8 @@ export function toMatchStructure(structure, received) {
 }
 
 const fail = errors => ({
-  message: () => `${matcherHint('.toMatchStructure')}\n\n${errors.join('\n')}`,
+  message: () =>
+    `${matcherHint('.toMatchStructure')}\n\n${errors.join('\n\n')}`,
   pass: false,
 })
 
