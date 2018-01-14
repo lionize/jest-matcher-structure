@@ -67,11 +67,6 @@ export const testArray = (structureValue, receivedValue, key) =>
   }
 
 export const testMatcherObject = (structureValue, receivedValue) => {
-  const matchErrors = structureValue.array.reduce((acc, cur) => {
-    acc.push(!mapValuesToError(cur, receivedValue))
-    return acc
-  }, [])
-
   const errorsCount = structureValue.array.reduce(
     (acc, cur) => (mapValuesToError(cur, receivedValue) && acc++, acc),
     0,
