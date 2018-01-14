@@ -3,14 +3,14 @@
   "version": "0.0.1",
   "description": "A custom jest matcher for validating object structures",
   "main": "lib/index.js",
-  "files": [
-    "lib"
-  ],
+  "files": ["lib"],
   "scripts": {
     "build": "NODE_ENV=production rollup -c",
     "prebuild": "rimraf lib/*",
     "dev": "NODE_ENV=development rollup -c -w",
     "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -58,9 +58,7 @@
     ],
     "env": {
       "test": {
-        "presets": [
-          "env"
-        ]
+        "presets": ["env"]
       }
     }
   }
