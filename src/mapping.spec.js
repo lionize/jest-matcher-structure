@@ -1,4 +1,4 @@
-import { some, every } from './matcher'
+import { some, every } from './helpers'
 import {
   mapStructureValueToTestType,
   testKeys,

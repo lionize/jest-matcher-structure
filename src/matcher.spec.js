@@ -1,6 +1,7 @@
 import prettyFormat from 'pretty-format'
 import stripmargin from 'stripmargin'
-import { some, every, formatError, toMatchStructure } from './matcher'
+import { formatError, toMatchStructure } from './matcher'
+import { some, every } from './helpers'
 
 stripmargin.inject()
 
@@ -12,20 +13,6 @@ jest.mock('jest-matcher-utils', () => ({
 }))
 
 expect.extend({ toMatchStructure })
-
-test('some', () => {
-  const array = [1, 2, 3]
-  const expected = { __matcher: 'some', array }
-
-  expect(some(array)).toEqual(expected)
-})
-
-test('every', () => {
-  const array = [1, 2, 3]
-  const expected = { __matcher: 'every', array }
-
-  expect(every(array)).toEqual(expected)
-})
 
 describe('toMatchStructure', () => {
   test('returns object with pass as true on success', () => {

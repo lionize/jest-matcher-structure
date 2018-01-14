@@ -4,9 +4,7 @@ import {
   mapStructureValueToTestType,
   mapValuesToError,
 } from './mapping'
-
-export const some = array => ({ __matcher: 'some', array })
-export const every = array => ({ __matcher: 'every', array })
+import { some, every } from './helpers'
 
 export const formatError = (
   expected,
