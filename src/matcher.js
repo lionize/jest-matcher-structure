@@ -1,9 +1,5 @@
 import { printExpected, printReceived, matcherHint } from 'jest-matcher-utils'
-import {
-  testKeys,
-  mapStructureValueToTestType,
-  mapValuesToError,
-} from './mapping'
+import { testKeys, mapStructureValueToTestType, mapErrors } from './mapping'
 import { some, every } from './helpers'
 
 export const formatError = (
@@ -26,27 +22,16 @@ export function toMatchStructure(structure, received) {
     ])
   }
 
-  const mapErrors = Object.keys(structure).reduce((acc, key) => {
-    let error = mapValuesToError(structure[key], received[key])
-
-    if (error) {
-      if (error.message) {
-        acc.push(error.message(key))
-      } else {
-        acc.push(
-          formatError(
-            error.structure || structure[key],
-            error.received || received[key],
-            error.action,
-          )(key),
-        )
-      }
+  const errors = mapErrors(structure, received).map(error => {
+    if (typeof error === 'object') {
+      return formatError(error.structure, error.received, error.action)(
+        error.key,
+      )
     }
+    return error
+  })
 
-    return acc
-  }, [])
-
-  return mapErrors.length ? fail(mapErrors) : pass()
+  return errors.length ? fail(errors) : pass()
 }
 
 const fail = errors => ({

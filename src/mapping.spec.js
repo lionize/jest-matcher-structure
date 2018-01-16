@@ -105,7 +105,9 @@ test('testType', () => {
 })
 
 test('testArray', () => {
-  expect(typeof testArray(['a']).message).toEqual('function')
+  expect(testArray(['a'], undefined, 'key')).toEqual(
+    'Array comparison not currently supported. Check key key.',
+  )
 })
 
 test('testMatcherObject', () => {
@@ -123,7 +125,9 @@ test('testMatcherObject', () => {
 })
 
 test('testObject', () => {
-  expect(typeof testObject({}).message).toEqual('function')
+  expect(testObject({}, undefined, 'key')).toEqual(
+    'Object comparison not currently supported. Check key key.',
+  )
 })
 
 test('testLiteral', () => {

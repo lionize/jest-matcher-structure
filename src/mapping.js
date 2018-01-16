@@ -19,11 +19,40 @@ export const mapStructureValueToTestType = value => {
   return 'literal'
 }
 
-export const mapValuesToError = (structure, received) => {
+export const mapValuesToError = (structure, received, key) => {
   const type = mapStructureValueToTestType(structure)
   const fn = tests[type]
 
-  return fn(structure, received)
+  return fn(structure, received, key)
+}
+
+export const mapErrors = (structure, received) => {
+  return Object.keys(structure).reduce((acc, key) => {
+    let error = mapValuesToError(structure[key], received[key], key)
+
+    if (!error) return acc
+
+    if (typeof error === 'string') {
+      acc.push(error)
+    }
+
+    if (error === true) {
+      acc.push({
+        structure: structure[key],
+        received: received[key],
+        key: key,
+      })
+    }
+
+    if (typeof error === 'object') {
+      error.structure = error.structure || structure[key]
+      error.received = error.received || received[key]
+      error.key = key
+      acc.push(error)
+    }
+
+    return acc
+  }, [])
 }
 
 export const testKeys = (structure, received) => {
@@ -61,10 +90,8 @@ export const testType = (structureValue, receivedValue) =>
   }
 
 export const testArray = (structureValue, receivedValue, key) =>
-  Array.isArray(structureValue) && {
-    message: key =>
-      `Array comparison not currently supported. Check key ${key}.`,
-  }
+  Array.isArray(structureValue) &&
+  `Array comparison not currently supported. Check key ${key}.`
 
 export const testMatcherObject = (structureValue, receivedValue) => {
   const errorsCount = structureValue.array.reduce(
@@ -85,10 +112,8 @@ export const testMatcherObject = (structureValue, receivedValue) => {
   return action && { action, structure: structureValue.array }
 }
 
-export const testObject = (structureValue, receivedValue, key) => ({
-  message: key =>
-    `Object comparison not currently supported. Check key ${key}.`,
-})
+export const testObject = (structureValue, receivedValue, key) =>
+  `Object comparison not currently supported. Check key ${key}.`
 
 export const testLiteral = (structureValue, receivedValue) =>
   structureValue !== receivedValue
