@@ -15,7 +15,7 @@ const plugins = [
   commonjs(),
   babel({
     exclude: ['node_modules/**'],
-    plugins: pkg.babel.plugins,
+    plugins: ['external-helpers'].concat(pkg.babel.plugins || []),
   }),
 ]
 
