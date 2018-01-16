@@ -6,6 +6,7 @@ import {
   identity,
   isMatcherObject,
   is,
+  joinKeys,
 } from './utils'
 
 test('is', () => {
@@ -63,4 +64,12 @@ test('isType', () => {
 test('identity', () => {
   expect(identity(1)).toBe(1)
   expect(identity(1)).not.toBe(2)
+})
+
+test('joinKeys joins keys separated by "."', () => {
+  let keys = [undefined, 'hello']
+  expect(joinKeys(...keys)).toEqual('hello')
+
+  keys = ['hello', 'world']
+  expect(joinKeys(...keys)).toEqual('hello.world')
 })

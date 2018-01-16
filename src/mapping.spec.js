@@ -8,7 +8,6 @@ import {
   testType,
   testArray,
   testMatcherObject,
-  testObject,
   testLiteral,
   mapValuesToError,
 } from './mapping'
@@ -105,7 +104,7 @@ test('testType', () => {
 })
 
 test('testArray', () => {
-  expect(testArray(['a'], undefined, 'key')).toEqual(
+  expect(testArray(['a'], _, 'key')).toEqual(
     'Array comparison not currently supported. Check key key.',
   )
 })
@@ -122,12 +121,6 @@ test('testMatcherObject', () => {
     structure: ['a'],
   })
   expect(testMatcherObject(every(['a']), 'a')).toBeFalsy()
-})
-
-test('testObject', () => {
-  expect(testObject({}, undefined, 'key')).toEqual(
-    'Object comparison not currently supported. Check key key.',
-  )
 })
 
 test('testLiteral', () => {

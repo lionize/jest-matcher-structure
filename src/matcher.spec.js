@@ -126,6 +126,42 @@ describe('toMatchStructure', () => {
       expect(message).toContain(actual)
     })
 
+    test('object comparison', () => {
+      const obj = {
+        field1: { field2: { field3: 'hello', field4: true }, field5: 1 },
+      }
+      const structure = {
+        field1: {
+          field2: { field3: 'number', field4: 'string' },
+          field5: 'boolean',
+        },
+      }
+      const message = toMatchStructure(structure, obj).message()
+      const field3Actual = formatError('number', 'string', 'be of type')(
+        'field1.field2.field3',
+      )
+      const field4Actual = formatError('string', 'boolean', 'be of type')(
+        'field1.field2.field4',
+      )
+      const field5Actual = formatError('boolean', 'number', 'be of type')(
+        'field1.field5',
+      )
+
+      expect(message).toContain(field3Actual)
+      expect(message).toContain(field4Actual)
+      expect(message).toContain(field5Actual)
+    })
+
+    test('array comparison not currently supported', () => {
+      const obj = { field1: ['hi'] }
+      const structure = { field1: ['hi'] }
+      const message = toMatchStructure(structure, obj).message()
+      const actual =
+        'Array comparison not currently supported. Check key field1.'
+
+      expect(message).toContain(actual)
+    })
+
     test('differing number of keys', () => {
       const obj = { field1: 'hello', field2: 'hi', field3: 'what?' }
       const structure = { field1: 'string', field2: 'string' }
@@ -136,26 +172,6 @@ describe('toMatchStructure', () => {
 
       message = toMatchStructure(obj, structure).message()
       actual = 'Structure has more keys than received object'
-
-      expect(message).toContain(actual)
-    })
-
-    test('object comparison not currently supported', () => {
-      const obj = { field1: { field2: 'hi ' } }
-      const structure = { field1: { field2: 'string' } }
-      const message = toMatchStructure(structure, obj).message()
-      const actual =
-        'Object comparison not currently supported. Check key field1.'
-
-      expect(message).toContain(actual)
-    })
-
-    test('array comparison not currently supported', () => {
-      const obj = { field1: ['hi'] }
-      const structure = { field1: ['hi'] }
-      const message = toMatchStructure(structure, obj).message()
-      const actual =
-        'Array comparison not currently supported. Check key field1.'
 
       expect(message).toContain(actual)
     })

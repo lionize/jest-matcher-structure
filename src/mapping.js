@@ -6,6 +6,7 @@ import {
   isType,
   identity,
   isMatcherObject,
+  joinKeys,
 } from './utils'
 
 export const mapStructureValueToTestType = value => {
@@ -26,14 +27,18 @@ export const mapValuesToError = (structure, received, key) => {
   return fn(structure, received, key)
 }
 
-export const mapErrors = (structure, received) => {
+export const mapErrors = (structure, received, outerKey) => {
   return Object.keys(structure).reduce((acc, key) => {
-    let error = mapValuesToError(structure[key], received[key], key)
+    let error = mapValuesToError(
+      structure[key],
+      received[key],
+      joinKeys(outerKey, key),
+    )
 
     if (!error) return acc
 
-    if (typeof error === 'string') {
-      acc.push(error)
+    if (Array.isArray(error)) {
+      return acc.concat(error)
     }
 
     if (error === true) {
@@ -44,10 +49,14 @@ export const mapErrors = (structure, received) => {
       })
     }
 
+    if (typeof error === 'string') {
+      acc.push(error)
+    }
+
     if (typeof error === 'object') {
       error.structure = error.structure || structure[key]
       error.received = error.received || received[key]
-      error.key = key
+      error.key = joinKeys(outerKey, key)
       acc.push(error)
     }
 
@@ -112,9 +121,6 @@ export const testMatcherObject = (structureValue, receivedValue) => {
   return action && { action, structure: structureValue.array }
 }
 
-export const testObject = (structureValue, receivedValue, key) =>
-  `Object comparison not currently supported. Check key ${key}.`
-
 export const testLiteral = (structureValue, receivedValue) =>
   structureValue !== receivedValue
 
@@ -125,6 +131,6 @@ const tests = {
   type: testType,
   array: testArray,
   matcherObject: testMatcherObject,
-  object: testObject,
+  object: mapErrors,
   literal: testLiteral,
 }
