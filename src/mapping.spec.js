@@ -1,4 +1,4 @@
-import { some, every } from './helpers'
+import { some, every, repeat } from './helpers'
 import {
   mapStructureValueToTestType,
   testKeys,
@@ -7,8 +7,10 @@ import {
   testRegex,
   testType,
   testArray,
-  testMatcherObject,
   testLiteral,
+  testEveryMatcher,
+  testSomeMatcher,
+  testRepeatMatcher,
   mapValuesToError,
 } from './mapping'
 let _
@@ -22,8 +24,9 @@ test('mapStructureValueToTestType maps values to types', () => {
     ['boolean', 'type'],
     ['number', 'type'],
     [{}, 'object'],
-    [some([]), 'matcherObject'],
-    [every([]), 'matcherObject'],
+    [repeat('string'), 'repeatMatcher'],
+    [some([]), 'someMatcher'],
+    [every([]), 'everyMatcher'],
     ['hello', 'literal'],
   ].forEach(([actual, expected]) =>
     expect(mapStructureValueToTestType(actual)).toEqual(expected),
@@ -103,24 +106,82 @@ test('testType', () => {
   expect(testType('boolean', true)).toBe(false)
 })
 
-test('testArray', () => {
-  expect(testArray(['a'], _, 'key')).toEqual(
-    'Array comparison not currently supported. Check key key.',
-  )
+describe('testArray', () => {
+  const action = 'match array structure'
+
+  test('literal structure', () => {
+    const structure = ['hello', 1, 'world']
+    let received = [0, 'world', 'hello']
+    expect(testArray(structure, received)).toEqual({
+      action,
+    })
+
+    received = [1, 'hello', 'world']
+    expect(testArray(structure, received)).toBeFalsy()
+  })
+
+  test('repeat structure', () => {
+    const structure = [repeat('string')]
+    let received = ['hello', 1, 'world']
+    expect(testArray(structure, received)).toEqual({
+      action,
+    })
+
+    received = ['hello', 'world', 'foobar']
+    expect(testArray(structure, received)).toBeFalsy()
+  })
+
+  test('mixed structure', () => {
+    let structure = [repeat('string'), 1, 'boolean']
+    let received = ['hello', 'world', 1, true, 'foobar', false]
+    expect(testArray(structure, received)).toBeTruthy()
+
+    received = ['hello', 'world', 1, true, 'foobar']
+    expect(testArray(structure, received)).toBeFalsy()
+
+    structure = [repeat('string'), repeat(every(['number', x => x > 0]))]
+    received = ['hello', 0, 1, '1', 'world']
+    expect(testArray(structure, received)).toBeTruthy()
+
+    received = ['hello', 'world', 1, 2]
+    expect(testArray(structure, received)).toBeFalsy()
+  })
 })
 
-test('testMatcherObject', () => {
-  expect(testMatcherObject(some(['a'], 'b'))).toEqual({
+test('testSomeMatcher', () => {
+  const structure = some(['a'])
+
+  let received = 'b'
+  expect(testSomeMatcher(structure, received)).toEqual({
     action: 'match at least one of the following',
     structure: ['a'],
   })
-  expect(testMatcherObject(some(['a']), 'a')).toBeFalsy()
 
-  expect(testMatcherObject(every(['a']), 'b')).toEqual({
+  received = 'a'
+  expect(testSomeMatcher(structure, received)).toBeFalsy()
+})
+
+test('testEveryMatcher', () => {
+  const structure = every(['a'])
+
+  let received = 'b'
+  expect(testEveryMatcher(structure, received)).toEqual({
     action: 'match all of the following',
     structure: ['a'],
   })
-  expect(testMatcherObject(every(['a']), 'a')).toBeFalsy()
+
+  received = 'a'
+  expect(testEveryMatcher(structure, received)).toBeFalsy()
+})
+
+test('testRepeatMatcher', () => {
+  const structure = repeat('a')
+
+  let received = 'b'
+  expect(testRepeatMatcher(structure, received)).toBe(true)
+
+  received = 'a'
+  expect(testRepeatMatcher(structure, received)).toBeFalsy()
 })
 
 test('testLiteral', () => {

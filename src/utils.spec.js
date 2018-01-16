@@ -1,6 +1,7 @@
 import {
   isSome,
   isEvery,
+  isRepeat,
   isRegex,
   isType,
   identity,
@@ -31,6 +32,15 @@ test('isEvery', () => {
   }
 
   expect(isEvery(every)).toBe(true)
+})
+
+test('isRepeat', () => {
+  const repeat = {
+    __matcher: 'repeat',
+    structure: 'string',
+  }
+
+  expect(isRepeat(repeat)).toBe(true)
 })
 
 test('isMatcherObject', () => {

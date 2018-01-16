@@ -2,6 +2,7 @@ import {
   is,
   isSome,
   isEvery,
+  isRepeat,
   isRegex,
   isType,
   identity,
@@ -15,8 +16,16 @@ export const mapStructureValueToTestType = value => {
   if (isRegex(value)) return 'regex'
   if (isType(value)) return 'type'
   if (Array.isArray(value)) return 'array'
-  if (typeof value === 'object')
-    return isMatcherObject(value) ? 'matcherObject' : 'object'
+  if (isMatcherObject(value)) {
+    return isSome(value)
+      ? 'someMatcher'
+      : isEvery(value)
+        ? 'everyMatcher'
+        : isRepeat(value) ? 'repeatMatcher' : null
+  }
+  if (typeof value === 'object') {
+    return 'object'
+  }
   return 'literal'
 }
 
@@ -98,28 +107,46 @@ export const testType = (structureValue, receivedValue) =>
     action: 'be of type',
   }
 
-export const testArray = (structureValue, receivedValue, key) =>
-  Array.isArray(structureValue) &&
-  `Array comparison not currently supported. Check key ${key}.`
+export const testArray = (structureValue, receivedValue) => {
+  const successes = structureValue.reduce((acc, structure) => {
+    if (isRepeat(structure)) {
+      return (
+        acc +
+        receivedValue.reduce((acc, received) => {
+          !mapValuesToError(structure, received) && acc++
+          return acc
+        }, 0)
+      )
+    } else {
+      receivedValue.find(received => !mapValuesToError(structure, received)) &&
+        acc++
+      return acc
+    }
+    return acc
+  }, 0)
 
-export const testMatcherObject = (structureValue, receivedValue) => {
-  const errorsCount = structureValue.array.reduce(
-    (acc, cur) => (mapValuesToError(cur, receivedValue) && acc++, acc),
-    0,
-  )
-
-  let action
-
-  if (isEvery(structureValue) && errorsCount) {
-    action = 'match all of the following'
+  if (successes !== receivedValue.length) {
+    return { action: 'match array structure' }
   }
-
-  if (isSome(structureValue) && errorsCount === structureValue.array.length) {
-    action = 'match at least one of the following'
-  }
-
-  return action && { action, structure: structureValue.array }
 }
+
+export const testRepeatMatcher = ({ structure }, receivedValue) =>
+  mapValuesToError(structure, receivedValue)
+
+export const testEveryMatcher = ({ array }, receivedValue) =>
+  array.reduce(
+    (acc, cur) => acc && mapValuesToError(cur, receivedValue),
+    true,
+  ) && {
+    action: 'match all of the following',
+    structure: array,
+  }
+
+export const testSomeMatcher = ({ array }, receivedValue) =>
+  !array.find(s => !mapValuesToError(s, receivedValue)) && {
+    action: 'match at least one of the following',
+    structure: array,
+  }
 
 export const testLiteral = (structureValue, receivedValue) =>
   structureValue !== receivedValue
@@ -130,7 +157,9 @@ const tests = {
   regex: testRegex,
   type: testType,
   array: testArray,
-  matcherObject: testMatcherObject,
+  repeatMatcher: testRepeatMatcher,
+  everyMatcher: testEveryMatcher,
+  someMatcher: testSomeMatcher,
   object: mapErrors,
   literal: testLiteral,
 }

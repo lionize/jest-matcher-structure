@@ -1,7 +1,7 @@
 import prettyFormat from 'pretty-format'
 import stripmargin from 'stripmargin'
 import { formatError, toMatchStructure } from './matcher'
-import { some, every } from './helpers'
+import { some, every, repeat } from './helpers'
 
 stripmargin.inject()
 
@@ -152,12 +152,15 @@ describe('toMatchStructure', () => {
       expect(message).toContain(field5Actual)
     })
 
-    test('array comparison not currently supported', () => {
-      const obj = { field1: ['hi'] }
-      const structure = { field1: ['hi'] }
+    test('array comparison', () => {
+      const obj = { field1: ['hi', 'hello'] }
+      const structure = { field1: [repeat('number')] }
       const message = toMatchStructure(structure, obj).message()
-      const actual =
-        'Array comparison not currently supported. Check key field1.'
+      const actual = formatError(
+        [repeat('number')],
+        ['hi', 'hello'],
+        'match array structure',
+      )('field1')
 
       expect(message).toContain(actual)
     })

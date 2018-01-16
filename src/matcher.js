@@ -1,6 +1,5 @@
 import { printExpected, printReceived, matcherHint } from 'jest-matcher-utils'
 import { testKeys, mapStructureValueToTestType, mapErrors } from './mapping'
-import { some, every } from './helpers'
 
 export const formatError = (
   expected,

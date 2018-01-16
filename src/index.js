@@ -1,3 +1,3 @@
 export { toMatchStructure } from './matcher'
 
-export { some, every } from './helpers'
+export { some, every, repeat } from './helpers'
