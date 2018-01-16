@@ -8,7 +8,7 @@
     <img src="https://img.shields.io/travis/lionize/jest-matcher-structure/master.svg?style=flat-square" alt="Build Status">
   </a>
   <a href="https://github.com/lionize/jest-matcher-structure/releases/tag/v0.1.1">
-    <img src="https://img.shields.io/badge/version-0.0.1-green.svg?style=flat-square" alt="v0.1.1">
+    <img src="https://img.shields.io/badge/version-0.1.1-green.svg?style=flat-square" alt="v0.1.1">
   </a>
   <a href="./LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square">
