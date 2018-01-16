@@ -7,8 +7,8 @@
   <a href="https://travis-ci.org/lionize/jest-matcher-structure">
     <img src="https://img.shields.io/travis/lionize/jest-matcher-structure/master.svg?style=flat-square" alt="Build Status">
   </a>
-  <a href="https://github.com/lionize/jest-matcher-structure/releases/tag/v0.0.1">
-    <img src="https://img.shields.io/badge/version-0.0.1-green.svg?style=flat-square" alt="v0.0.1">
+  <a href="https://github.com/lionize/jest-matcher-structure/releases/tag/v0.1.1">
+    <img src="https://img.shields.io/badge/version-0.0.1-green.svg?style=flat-square" alt="v0.1.1">
   </a>
   <a href="./LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square">
@@ -46,6 +46,12 @@ test("structure matches object's structure", () => {
     boolean: 'boolean',
     function: n => n > 5,
     literal: 'literal value',
+    nested: {
+      string: 'string',
+      number: 'number',
+      function: n => x < 5,
+    },
+    arrayLiteral: ['hello', 'hi', 1, 2, 3, true, false],
     regex: /\d+/,
     null: null,
   }
@@ -56,6 +62,12 @@ test("structure matches object's structure", () => {
     boolean: true,
     function: 10,
     literal: 'literal value',
+    nested: {
+      string: 'string',
+      number: 1,
+      function: 3,
+    },
+    arrayLiteral: [false, true, 3, 2, 1, 'hi', 'hello'],
     regex: '1234',
     null: null,
   }
@@ -64,7 +76,11 @@ test("structure matches object's structure", () => {
 })
 ```
 
-jest-matcher-structure also comes with two helper functions--`some` and `every`--for fields where you need to test the comparison value against multiple truths. You pass them an array and jest-matcher-structure works its magic! Here's an example:
+### Helper Functions
+
+jest-matcher-structure comes with the helper functions `some`, `every`, and `repeat`.
+
+`some` and `every` are for fields where you need to test the comparison value against multiple truths. You pass them an array and jest-matcher-structure works its magic! Here's an example:
 
 ```javascript
 import { some, every, toMatchStructure } from 'jest-matcher-structure'
@@ -84,6 +100,24 @@ test('some and every', () => {
 })
 ```
 
+`repeat` is for consuming repeating comparisons in an array. For example, if you need to make sure an array is filled with strings, you can do the following:
+
+```javascript
+import { repeat, toMatchStructure } from 'jest-matcher-structure'
+
+test('repeat', () => {
+  const structure = {
+    field1: [repeat('string')],
+  }
+
+  const object = {
+    field1: ['hello', 'world', 'fubar'],
+  }
+
+  expect(structure).toMatchStructure(object)
+})
+```
+
 ## List of Comparisons
 
 * literal value
@@ -94,12 +128,16 @@ test('some and every', () => {
 * regex
 * `some`
 * `every`
-* ...and more to come!
+* objects
+* arrays
+  * exact comparison match
+  * repeating values in an array using `repeat`
 
-## TODO
+## Upcoming Changes
 
-* Nested object comparison
-* Array comparison
+* Code refactor
+* Flesh out test cases to make sure edge cases are covered
+* Rethink `some`, `every`, `repeat`
 
 ## Created By
 
